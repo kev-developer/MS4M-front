@@ -21,11 +21,12 @@ export interface MapData {
 
 // Estructuras dinámicas (SSE - GET /simulacion/stream)
 export interface TruckState {
-  id: string // ej. "CAM-001"
+  id: string
   status: 'IDLE' | 'MOVING' | 'FINISHED' | 'ERROR'
   lat: number
   lng: number
   speed: number
+  error_reason?: string
 }
 
 // Estructuras de resultados (GET /reporte)

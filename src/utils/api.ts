@@ -55,3 +55,26 @@ export function subscribeToSimulation(onMessage: (trucks: TruckState[]) => void,
 
   return () => eventSource.close()
 }
+
+export interface SimulationConfig {
+  time_multiplier?: number
+  speed_min?: number
+  speed_max?: number
+}
+
+export async function updateSimulationConfig(config: SimulationConfig): Promise<any> {
+  const params = new URLSearchParams()
+  if (config.time_multiplier !== undefined) params.append('time_multiplier', String(config.time_multiplier))
+  if (config.speed_min !== undefined) params.append('speed_min', String(config.speed_min))
+  if (config.speed_max !== undefined) params.append('speed_max', String(config.speed_max))
+
+  const response = await fetch(`${API_URL}/simulacion/config`, {
+    method: 'POST',
+    body: params.toString(),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+  })
+  if (!response.ok) {
+    throw new Error(`Failed to update config: ${response.statusText}`)
+  }
+  return response.json()
+}

@@ -21,9 +21,9 @@ export default function ReportTable({ report }: ReportTableProps) {
           <tr>
             <th>Camion</th>
             <th>Viajes</th>
-            <th>Mín (s)</th>
-            <th>Máx (s)</th>
-            <th>Promedio</th>
+            <th>Mín (km/h)</th>
+            <th>Máx (km/h)</th>
+            <th>Promedio (km/h)</th>
           </tr>
         </thead>
         <tbody>

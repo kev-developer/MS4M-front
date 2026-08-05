@@ -29,7 +29,15 @@ export default function Trucks({ trucks }: TrucksProps) {
           icon={createTruckIcon(getStatusColor(truck.status))}
         >
           <Tooltip>
-            {truck.id} - {truck.speed.toFixed(1)} km/h - {truck.status}
+            <div>
+              <strong>{truck.id}</strong>
+              <div>{truck.speed.toFixed(1)} km/h - {truck.status}</div>
+              {truck.error_reason && (
+                <div style={{ color: '#ef4444', fontSize: '0.85em', marginTop: '4px' }}>
+                  ⚠ {truck.error_reason}
+                </div>
+              )}
+            </div>
           </Tooltip>
         </Marker>
       ))}

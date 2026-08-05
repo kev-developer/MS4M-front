@@ -62,11 +62,21 @@ export default function App() {
             ) : (
               trucks.map((truck) => (
                 <div key={truck.id} className="truck-chip">
-                  <span className="truck-id">{truck.id}</span>
-                  <span className={`status-tag status-tag--${truck.status}`}>
-                    {truck.status}
-                  </span>
-                  <span className="truck-speed">{truck.speed.toFixed(1)} km/h</span>
+                  <div style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span className="truck-id">{truck.id}</span>
+                      <span className={`status-tag status-tag--${truck.status}`}>
+                        {truck.status}
+                      </span>
+                    </div>
+                    {truck.error_reason ? (
+                      <div style={{ fontSize: '12px', color: '#ef4444', lineHeight: '1.3' }}>
+                        ⚠ {truck.error_reason}
+                      </div>
+                    ) : (
+                      <span className="truck-speed">{truck.speed.toFixed(1)} km/h</span>
+                    )}
+                  </div>
                 </div>
               ))
             )}
