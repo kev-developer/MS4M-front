@@ -1,122 +1,84 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useEffect } from 'react'
+import ControlPanel from './components/dashboard/ControlPanel'
+import Legend from './components/dashboard/Legend'
+import MapView from './components/map/MapView'
+import HeuristicText from './components/reports/HeuristicText'
+import ReportTable from './components/reports/ReportTable'
+import ErrorScreen from './components/ErrorScreen'
+import LoadingScreen from './components/LoadingScreen'
+import { useMapData } from './hooks/useMapData'
+import { useSimulation } from './hooks/useSimulation'
+import { useSSE } from './hooks/useSSE'
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const { routes, loads, dumps, loading, error: mapError } = useMapData()
+  const { running, report, error: simError, start, stop, reset, setAllFinished } =
+    useSimulation()
+  const { trucks, allFinished } = useSSE(running)
+
+  useEffect(() => {
+    setAllFinished(allFinished)
+  }, [allFinished, setAllFinished])
+
+  if (mapError) {
+    return <ErrorScreen message={mapError} />
+  }
+
+  if (loading) {
+    return <LoadingScreen />
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+    <div className="app-shell">
+      <main className="map-area">
+        <MapView routes={routes} trucks={trucks} loads={loads} dumps={dumps} />
+      </main>
+
+      <aside className="side-panel">
+        <header className="panel-header">
+          <h1 className="panel-title">Flota de camiones</h1>
+          <p className="panel-subtitle">Despacho y tiempos de viaje de la operación.</p>
+        </header>
+
+        <div className="panel-scroll">
+          <ControlPanel running={running} onStart={start} onStop={stop} onReset={reset} />
+
+          {simError && <div className="error-banner">{simError}</div>}
+
+          <p className="status-pill">
+            <span className={`status-dot${running ? ' status-dot--on' : ''}`} />
+            {running ? 'Simulación en ejecución' : 'Simulación detenida'}
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
+          <h2 className="section-label">Leyenda</h2>
+          <Legend routes={routes} loads={loads} dumps={dumps} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+          <h2 className="section-label">Velocidades en tiempo real</h2>
+          <div className="truck-grid">
+            {trucks.length === 0 ? (
+              <div className="empty">
+                Los camiones aparecerán acá al iniciar la simulación.
+              </div>
+            ) : (
+              trucks.map((truck) => (
+                <div key={truck.id} className="truck-chip">
+                  <span className="truck-id">{truck.id}</span>
+                  <span className={`status-tag status-tag--${truck.status}`}>
+                    {truck.status}
+                  </span>
+                  <span className="truck-speed">{truck.speed.toFixed(1)} km/h</span>
+                </div>
+              ))
+            )}
+          </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+          <h2 className="section-label">Métricas</h2>
+          <ReportTable report={report} />
+
+          <h2 className="section-label">Análisis</h2>
+          <HeuristicText report={report} />
+        </div>
+      </aside>
+    </div>
   )
 }
-
-export default App
